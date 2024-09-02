@@ -1,11 +1,7 @@
-import * as assress from './modules/address.js';
-import * as business from './modules/business.js';
+import * as demo from './modules/demo.js';
 
 const apis = {
-	assress,
-	business
+	demo
 };
-
-console.log(apis);
 
 export const useRequest = () => apis;

@@ -1,13 +1,15 @@
 import { useUserStore } from '@/store/modules/user.js';
-import StatusCode from '@/enums';
-
+import StatusCode from '@/utils/statusCode.js';
 class Request {
 	/**
 	 * 内部的属性定义有：基础配置(config)、拦截器(interceptor)
 	 */
 	constructor() {
 		this.config = {
-			baseUrl: process.env.UNI_BASE_URL, // 请求的根域名
+			baseUrl:
+				process.env.NODE_ENV === 'development'
+					? import.meta.env.VITE_APP_API_BASEURL
+					: import.meta.env.VITE_APP_PROXY_PREFIX, // 请求的根域名
 			header: {}, // 默认的请求头
 			method: 'POST',
 			showLoading: true, // 是否显示请求中的loading
@@ -19,20 +21,16 @@ class Request {
 		/**
 		 * description: 处理状态码
 		 */
-		this.handleStatusCode = () => {
-			const {
-				data: { code, message, data }
-			} = res || {};
-			if (code === StatusCode.SUCCESS) {
+		this.handleStatusCode = (res) => {
+			const { statusCode, data } = res || {};
+			if (statusCode === 200) {
 				return data;
-			} else if (code === StatusCode.LOGIN_ERROR) {
-				Utils.showToast('登陆失效');
-			} else if (code === StatusCode.SYSTEM_ERROR) {
-				Utils.showToast('系统错误');
 			} else {
-				Utils.showToast(message);
+				uni.showToast({
+					title: `${statusCode}:${StatusCode[statusCode]}`,
+					icon: 'none'
+				});
 			}
-			return Promise.reject(data);
 		};
 		/**
 		 * 包含了值都为空的请求拦截和响应拦截属性的拦截器对象。
@@ -52,13 +50,8 @@ class Request {
 			},
 			// 响应拦截
 			response: (response) => {
-				// apiData 是 api 返回的数据
-				const apiData = response.data;
-				if (response && result.length > 0) {
-					apiData.data = JSON.parse(result);
-				}
-				// 根据返回的code值来做不同的处理（和后端约定）
-				this.handleStatusCode(apiData);
+				// apiData 是 api 返回的数据,根据返回的code值来做不同的处理（和后端约定）
+				return this.handleStatusCode(response);
 			}
 		};
 		this.request = (options = {}) => {
