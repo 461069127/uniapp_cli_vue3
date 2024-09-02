@@ -5,14 +5,14 @@
 import request from '@/utils/request';
 export function apiDemoPost(data) {
 	return request({
-		url: '/mock/useer',
+		url: '/mock/user',
 		method: 'POST',
 		data
 	});
 }
 export function apiDemoGet(data) {
 	return request({
-		url: '/postss',
+		url: '/posts',
 		method: 'GET',
 		data
 	});
